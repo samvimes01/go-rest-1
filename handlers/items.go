@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/samvimes01/go-rest1/models"
 	"github.com/samvimes01/go-rest1/services"
+	"github.com/samvimes01/go-rest1/utils"
 )
 
 func GetAllItems(c *fiber.Ctx) error {
@@ -38,6 +39,14 @@ func GetItemByID(c *fiber.Ctx) error {
 }
 
 func CreateItem(c *fiber.Ctx) error {
+	isValid, err := utils.CheckToken(c)
+	if !isValid {
+		return c.Status(http.StatusUnauthorized).JSON(models.Response[any]{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
 	var itemInput *models.ItemRequest = new(models.ItemRequest)
 
 	if err := c.BodyParser(itemInput); err != nil {
@@ -67,7 +76,15 @@ func CreateItem(c *fiber.Ctx) error {
 }
 
 func UpdateItem(c *fiber.Ctx) error {
-  itemInput := &models.ItemRequest{}
+	isValid, err := utils.CheckToken(c)
+	if !isValid {
+		return c.Status(http.StatusUnauthorized).JSON(models.Response[any]{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
+	itemInput := &models.ItemRequest{}
 
 	if err := c.BodyParser(itemInput); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(models.Response[any]{
@@ -104,18 +121,26 @@ func UpdateItem(c *fiber.Ctx) error {
 }
 
 func DeleteItem(c *fiber.Ctx) error {
+	isValid, err := utils.CheckToken(c)
+	if !isValid {
+		return c.Status(http.StatusUnauthorized).JSON(models.Response[any]{
+			Success: false,
+			Message: err.Error(),
+		})
+	}
+
 	var itemID string = c.Params("id")
 
 	result := services.DeleteItem(itemID)
 
-  if result {
-    return c.JSON(models.Response[any]{
-      Success: true,
-      Message: "item deleted",
-    })
-  }
+	if result {
+		return c.JSON(models.Response[any]{
+			Success: true,
+			Message: "item deleted",
+		})
+	}
 
-  return c.Status(http.StatusNotFound).JSON(models.Response[any]{
+	return c.Status(http.StatusNotFound).JSON(models.Response[any]{
 		Success: false,
 		Message: "item failed to delete",
 	})

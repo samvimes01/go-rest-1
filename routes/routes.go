@@ -3,15 +3,22 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/samvimes01/go-rest1/handlers"
+	"github.com/samvimes01/go-rest1/middlewares"
 )
 
 func SetupRoutes(app *fiber.App) {
-	app.Post("/api/v1/signup", handlers.Signup)
-	app.Post("/api/v1/login", handlers.Login)
+	// public routes
+	var publicRoutes fiber.Router = app.Group("/api/v1")
 
-	app.Get("/api/v1/items", handlers.GetAllItems)
-	app.Get("/api/v1/items/:id", handlers.GetItemByID)
-	app.Post("/api/v1/items", handlers.CreateItem)
-	app.Put("/api/v1/items/:id", handlers.UpdateItem)
-	app.Delete("/api/v1/items/:id", handlers.DeleteItem)
+	publicRoutes.Post("/signup", handlers.Signup)
+	publicRoutes.Post("/login", handlers.Login)
+	publicRoutes.Get("/items", handlers.GetAllItems)
+	publicRoutes.Get("/items/:id", handlers.GetItemByID)
+
+	// private routes, authentication is required
+	var privateRoutes fiber.Router = app.Group("/api/v1", middlewares.CreateJwtMiddleware())
+
+	privateRoutes.Post("/items", handlers.CreateItem)
+	privateRoutes.Put("/items/:id", handlers.UpdateItem)
+	privateRoutes.Delete("/items/:id", handlers.DeleteItem)
 }
