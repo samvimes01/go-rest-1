@@ -1,0 +1,35 @@
+version: "3"
+services:
+  api:
+    build:
+      dockerfile: ./docker/dev.Dockerfile
+      context: ./
+    volumes:
+      - ./:/app
+    ports:
+      - ${APP_PORT}:8080
+    depends_on:
+      - postgresdb
+    networks:
+      - gopg
+
+  postgresdb:
+    image: postgres:16.1-alpine
+    env_file:
+        - .env
+    # restart: always
+    ports:
+      - '${POSTGRES_PORT}:5432'
+    volumes: 
+      - dbvol:/var/lib/postgresql/data
+      # - ./db/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    networks:
+      - gopg
+
+volumes:
+  dbvol:
+    driver: local
+
+networks:
+  gopg:
+    driver: bridge
