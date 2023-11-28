@@ -1,19 +1,35 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/samvimes01/go-rest1/db"
 	"github.com/samvimes01/go-rest1/routes"
 )
 
-func main() {
-	var app *fiber.App = fiber.New()
+const DEFAULT_PORT = "8080"
 
-	// dummy request handler 
+func NewFiberApp() *fiber.App {
+	var app *fiber.App = fiber.New()
+	// dummy request handler
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("hello world!")
 	})
+	routes.SetupRoutes(app)
+	return app
+}
 
-  routes.SetupRoutes(app)
+func main() {
+	var app *fiber.App = NewFiberApp()
 
-	app.Listen(":8080")
+	db.InitDatabase()
+
+	var PORT string = os.Getenv("PORT")
+	if PORT == "" {
+		PORT = DEFAULT_PORT
+	}
+
+	app.Listen(fmt.Sprintf(":%s", PORT))
 }
