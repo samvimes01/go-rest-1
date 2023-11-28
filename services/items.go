@@ -5,23 +5,25 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/samvimes01/go-rest1/db"
 	"github.com/samvimes01/go-rest1/models"
 )
 
-var storage []models.Item = []models.Item{}
-
 func GetAllItems() []models.Item {
-  return storage
+  items := []models.Item{}
+	db.DB.Order("created_at desc").Find(&items)
+	return items
 }
 
 func GetItemByID(id string) (models.Item, error) {
-  for _, item := range storage {
-      if item.ID == id {
-          return item, nil
-      }
-  }
+	var item models.Item
+  result := db.DB.Take(&item, "id = ?", id)
 
-  return models.Item{}, errors.New("item not found")
+	if result.RowsAffected == 0 {
+		return models.Item{}, errors.New("item not found")
+	}
+
+  return item, nil
 }
 
 func CreateItem(itemRequest *models.ItemRequest) models.Item {
@@ -32,39 +34,37 @@ func CreateItem(itemRequest *models.ItemRequest) models.Item {
       Quantity:  itemRequest.Quantity,
       CreatedAt: time.Now(),
   }
-  storage = append(storage, newItem)
+
+  db.DB.Create(&newItem)
 
   return newItem
 }
 
 func UpdateItem(itemRequest *models.ItemRequest, id string) (models.Item, error) {
-  for index, item := range storage {
-      if item.ID == id {
-          // update the item's data
-          item.Name = itemRequest.Name
-          item.Price = itemRequest.Price
-          item.Quantity = itemRequest.Quantity
-          item.UpdatedAt = time.Now()
+	item, err := GetItemByID(id)
 
-          storage[index] = item
+	if err != nil {
+		return models.Item{}, err
+	}
 
-          return item, nil
-      }
-  }
+	item.Name = itemRequest.Name
+	item.Price = itemRequest.Price
+	item.Quantity = itemRequest.Quantity
+	item.UpdatedAt = time.Now()
 
-  return models.Item{}, errors.New("item update failed, item not found")
+	db.DB.Save(&item)
+
+	return item, nil
 }
 
 func DeleteItem(id string) bool {
-  newItems := []models.Item{}
+	item, err := GetItemByID(id)
 
-  for _, item := range storage {
-      if item.ID != id {
-          newItems = append(newItems, item)
-      }
-  }
+	if err != nil {
+		return false
+	}
 
-  storage = newItems
+	db.DB.Delete(&item)
 
-  return true
+	return true
 }
