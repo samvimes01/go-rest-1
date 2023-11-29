@@ -22,8 +22,6 @@ FROM alpine
 WORKDIR /app
  
 COPY --from=builder /app/main /app/main
-COPY --from=builder /app/assets/ ./assets
-COPY --from=builder /app/index.html .
  
 RUN touch .env // remove it if code wont break
  
