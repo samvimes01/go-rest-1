@@ -11,14 +11,14 @@ import (
 
 var DB *gorm.DB
 
-func InitDatabase() {
+func InitDatabase(dbHost, dbName string) {
 
 	var (
-		databaseUser     string = utils.GetValue("POSTGRES_USER")
-		databasePassword string = utils.GetValue("POSTGRES_PASSWORD")
-		databaseHost     string = utils.GetValue("POSTGRES_HOST")
-		databasePort     string = utils.GetValue("POSTGRES_PORT")
-		databaseName     string = utils.GetValue("POSTGRES_DB")
+		databaseUser     string = utils.GetValue("DB_USER")
+		databasePassword string = utils.GetValue("DB_PASSWORD")
+		databasePort     string = utils.GetValue("DB_PORT")
+		databaseHost     string = dbHost
+		databaseName     string = dbName
 	)
 
 	var dataSource string = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Berlin", databaseHost, databaseUser, databasePassword, databaseName, databasePort)
@@ -33,5 +33,5 @@ func InitDatabase() {
 
 	fmt.Println("Connected to the database")
 
-  DB.AutoMigrate(&models.User{}, &models.Item{})
+	DB.AutoMigrate(&models.User{}, &models.Item{})
 }
